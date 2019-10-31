@@ -60,7 +60,6 @@ func main() {
 	//////////////////////////////////////////////////////
 
 	ssdp.Logger = log.New(os.Stderr, "[SSDP] ", log.LstdFlags)
-	fmt.Println(mac)
 
 	ip, err := getLocalIP()
 	if err != nil {
