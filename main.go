@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	HTTP_PORT = 80
+	HTTP_PORT  = 80
+	HTTPS_PORT = 443
 )
 
 func main() {
@@ -31,17 +32,19 @@ func main() {
 	mac = strings.ReplaceAll(mac, ":", "")
 	bridgeID := mac[len(mac)-6:]
 
+	//////////////////////////////////////////////////////
+
 	router := http.NewServeMux()
 	router.Handle("/", serveIndex())
 
 	s := &http.Server{
-		Addr:         fmt.Sprintf(":%d", HTTP_PORT),
 		Handler:      router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		ErrorLog:     log.New(os.Stderr, "[HTTP] ", log.LstdFlags),
 	}
 	go s.ListenAndServe()
+	go s.ListenAndServeTLS("cert.pem", "key.pem")
 
 	//////////////////////////////////////////////////////
 
@@ -68,11 +71,11 @@ func main() {
 	}
 
 	ad, err := ssdp.Advertise(
-		"urn:schemas-upnp-org:device:Basic:1",                      // send as "ST"
-		fmt.Sprintf("38323636-4558-4dda-9188-%s", mac),             // send as "USN"
-		fmt.Sprintf("http://%s:%d/description.xml", ip, HTTP_PORT), // send as "LOCATION"
-		"FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1",                   // send as "SERVER"
-		1200)                                                       // send as "maxAge" in "CACHE-CONTROL"
+		"urn:schemas-upnp-org:device:Basic:1",          // send as "ST"
+		fmt.Sprintf("38323636-4558-4dda-9188-%s", mac), // send as "USN"
+		fmt.Sprintf("http://%s/description.xml", ip),   // send as "LOCATION"
+		"FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1",       // send as "SERVER"
+		1200)                                           // send as "maxAge" in "CACHE-CONTROL"
 	if err != nil {
 		panic(err)
 	}
@@ -105,12 +108,19 @@ func getMacAddr() (addr string, err error) {
 		return "", err
 	}
 	for _, ifa := range ifas {
+		// Interface is up and has a mac address
 		if ifa.Flags&net.FlagUp != 0 && bytes.Compare(ifa.HardwareAddr, nil) != 0 {
 			// Skip locally administered addresses
 			if ifa.HardwareAddr[0]&2 == 2 {
 				continue
 			}
 
+			// Skip vEthernet addresses. I don't love this, but I need it
+			if strings.Contains(ifa.Name, "vEthernet") {
+				continue
+			}
+
+			// Interface still has an address, I guess
 			addr = ifa.HardwareAddr.String()
 			if addr != "" {
 				return addr, nil
