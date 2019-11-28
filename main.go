@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	HTTP_PORT  = 80
-	HTTPS_PORT = 443
+	httpPort  = 80
+	httpsPort = 443
 )
 
 func main() {
