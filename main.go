@@ -22,18 +22,25 @@ const (
 	httpsPort = 443
 )
 
+var (
+	macAddress string
+	ipAddress  string
+	bridgeID   string
+)
+
 func main() {
-	mac, err := getMacAddr()
+	var err error
+	macAddress, err = getMacAddr()
 	if err != nil {
 		panic(err)
 	}
-	if mac == "" {
+	if macAddress == "" {
 		panic("Could not find mac address")
 	}
-	log.Printf("MAC Address: %s", mac)
+	log.Printf("MAC Address: %s", macAddress)
 
-	mac = strings.ReplaceAll(mac, ":", "")
-	bridgeID := mac[len(mac)-6:]
+	mac := strings.ReplaceAll(macAddress, ":", "")
+	bridgeID = mac[len(mac)-6:]
 	log.Printf("Bridge ID: %s", bridgeID)
 
 	//////////////////////////////////////////////////////
@@ -67,20 +74,20 @@ func main() {
 
 	ssdp.Logger = log.New(os.Stderr, "[SSDP] ", log.LstdFlags)
 
-	ip, err := getLocalIP()
+	ipAddress, err = getLocalIP()
 	if err != nil {
 		panic(err)
 	}
-	if ip == "" {
+	if ipAddress == "" {
 		panic("Could not find ip address")
 	}
 
 	ad, err := ssdp.Advertise(
-		"urn:schemas-upnp-org:device:Basic:1",          // send as "ST"
-		fmt.Sprintf("38323636-4558-4dda-9188-%s", mac), // send as "USN"
-		fmt.Sprintf("http://%s/description.xml", ip),   // send as "LOCATION"
-		"FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1",       // send as "SERVER"
-		1200)                                           // send as "maxAge" in "CACHE-CONTROL"
+		"urn:schemas-upnp-org:device:Basic:1",               // send as "ST"
+		fmt.Sprintf("38323636-4558-4dda-9188-%s", mac),      // send as "USN"
+		fmt.Sprintf("http://%s/description.xml", ipAddress), // send as "LOCATION"
+		"FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1",            // send as "SERVER"
+		1200)                                                // send as "maxAge" in "CACHE-CONTROL"
 	if err != nil {
 		panic(err)
 	}
@@ -205,14 +212,11 @@ func serveDescriptionXML() http.Handler {
 </device>
 </root>`
 
-		mac, _ := getMacAddr()
-		mac = strings.ReplaceAll(mac, ":", "")
+		mac := strings.ReplaceAll(macAddress, ":", "")
 		mac = strings.ToLower(mac)
 
-		ip, _ := getLocalIP()
-
 		xml = strings.ReplaceAll(xml, "{mac}", mac)
-		xml = strings.ReplaceAll(xml, "{ip}", ip)
+		xml = strings.ReplaceAll(xml, "{ip}", ipAddress)
 
 		fmt.Fprintln(w, xml)
 	})
@@ -288,20 +292,15 @@ type hubWhitelist struct {
 }
 
 func getConfig() string {
-	mac, _ := getMacAddr()
-	ip, _ := getLocalIP()
-	mac = strings.ReplaceAll(mac, ":", "")
-	bridgeID := mac[len(mac)-6:]
-
 	response := &hubConfig{
 		Name:           "Go Hue Bridge",
 		BridgeID:       bridgeID,
 		SWVersion:      "81012917",
 		PortalServices: false,
 		LinkButton:     false,
-		MacAddress:     mac,
+		MacAddress:     macAddress,
 		DHCP:           true, // TODO
-		IPAddress:      ip,
+		IPAddress:      ipAddress,
 		NetMask:        "255.255.255.0", // TODO
 		Gateway:        "192.168.1.1",   // TODO
 		APIVersion:     "1.3.0",
@@ -380,20 +379,15 @@ func getFullConfig() string {
 	response.Scenes = []Scene{}
 
 	// TODO: Dedupe this logic with getConfig()
-	mac, _ := getMacAddr()
-	ip, _ := getLocalIP()
-	mac = strings.ReplaceAll(mac, ":", "")
-	bridgeID := mac[len(mac)-6:]
-
 	response.Config = hubConfig{
 		Name:           "Go Hue Bridge",
 		BridgeID:       bridgeID,
 		SWVersion:      "81012917",
 		PortalServices: false,
 		LinkButton:     false,
-		MacAddress:     mac,
+		MacAddress:     macAddress,
 		DHCP:           true, // TODO
-		IPAddress:      ip,
+		IPAddress:      ipAddress,
 		NetMask:        "255.255.255.0", // TODO
 		Gateway:        "192.168.1.1",   // TODO
 		APIVersion:     "1.3.0",
