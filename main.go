@@ -228,23 +228,25 @@ func serveAPI() http.Handler {
 
 		// Example: /api/nouser/config
 		var configPath = regexp.MustCompile(`^\/api\/(.+)\/config$`)
-		var fullConfigPath = regexp.MustCompile(`^\/api\/(.*)$`)
-		var apiPath = regexp.MustCompile(`^\/api\/$`)
+		var apiPath = regexp.MustCompile(`^\/api\/(.*)$`)
 		path := r.URL.Path
 		switch {
 		case configPath.MatchString(path):
 			output = getConfig()
-		case fullConfigPath.MatchString(path):
-			output = getFullConfig()
 		case apiPath.MatchString(path):
 			switch r.Method {
 			case "POST":
 				// Always succeed with authentication, even though the "link" button isn't pushed
-				output = `{
-	"success": {
-		"username": "api"
+				// TODO: Make this a generic method
+				output = `[
+	{
+		"success": {
+			"username": "api"
+		}
 	}
-}`
+]`
+			case "GET":
+				output = getFullConfig()
 			}
 		}
 
