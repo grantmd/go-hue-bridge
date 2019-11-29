@@ -311,10 +311,104 @@ func getConfig() string {
 			Name: "clientname#devicename",
 		},
 	}
+
 	b, err := json.MarshalIndent(response, "", "\t")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return string(b)
+}
+
+type Light struct {
+	Name      string     `json:"name"`
+	Type      string     `json:"type"`
+	ModelID   string     `json:"modelid"`
+	UniqueID  string     `json:"uniqueid"`
+	SWVersion string     `json:"swversion"`
+	State     lightState `json:"state"`
+}
+
+type lightState struct {
+	On         bool   `json:"on"`
+	Brightness int    `json:"bri"`
+	Alert      string `json:"alert"`
+	Reachable  bool   `json:"reachable"`
+}
+
+type Schedule struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Time        string `json:"time"`
+}
+
+type Group struct {
+	Name   string   `json:"name"`
+	Lights []string `json:"lights"`
+}
+
+type Scene struct {
+	Name        string   `json:"name"`
+	Lights      []string `json:"lights"`
+	Owner       string   `json:"owner"`
+	Recycle     bool     `json:"recycle"`
+	Locked      bool     `json:"locked"`
+	Picture     string   `json:"picture"`
+	LastUpdated string   `json:"lastupdated"`
+	Version     string   `json:"version"`
+}
+
+type hubFullConfig struct {
+	Lights        []Light       `json:"lights"`
+	Groups        []Group       `json:"groups"`
+	Config        hubConfig     `json:"config"`
+	Schedules     []Schedule    `json:"schedules"`
+	Scenes        []Scene       `json:"scenes"`
+	Rules         []interface{} `json:"rules"`
+	Sensors       []interface{} `json:"sensors"`
+	ResourceLinks []interface{} `json:"resourcelinks"`
+}
+
+func getFullConfig() string {
+	response := &hubFullConfig{}
+
+	response.Lights = []Light{}
+	response.Groups = []Group{}
+	response.Schedules = []Schedule{}
+	response.Scenes = []Scene{}
+
+	// TODO: Dedupe this logic with getConfig()
+	mac, _ := getMacAddr()
+	ip, _ := getLocalIP()
+	mac = strings.ReplaceAll(mac, ":", "")
+	bridgeID := mac[len(mac)-6:]
+
+	response.Config = hubConfig{
+		Name:           "Go Hue Bridge",
+		BridgeID:       bridgeID,
+		SWVersion:      "81012917",
+		PortalServices: false,
+		LinkButton:     false,
+		MacAddress:     mac,
+		DHCP:           true, // TODO
+		IPAddress:      ip,
+		NetMask:        "255.255.255.0", // TODO
+		Gateway:        "192.168.1.1",   // TODO
+		APIVersion:     "1.3.0",
+		UTC:            time.Now().Format(time.RFC3339),
+	}
+
+	response.Config.Whitelist = map[string]hubWhitelist{
+		"api": hubWhitelist{
+			Name: "clientname#devicename",
+		},
+	}
+
+	b, err := json.MarshalIndent(response, "", "\t")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return string(b)
+
 }
