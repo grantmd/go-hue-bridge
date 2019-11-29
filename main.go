@@ -242,13 +242,7 @@ func serveAPI() http.Handler {
 			case "POST":
 				// Always succeed with authentication, even though the "link" button isn't pushed
 				// TODO: Make this a generic method
-				output = `[
-	{
-		"success": {
-			"username": "api"
-		}
-	}
-]`
+				output = returnSuccess("username", "api")
 			case "GET":
 				output = getFullConfig()
 			}
@@ -407,4 +401,15 @@ func getFullConfig() string {
 
 	return string(b)
 
+}
+
+// TODO: Make this a proper object and marshal to json
+func returnSuccess(id, value string) string {
+	return `[
+	{
+		"success": {
+			"` + id + `": "` + value + `"
+		}
+	}
+]`
 }
