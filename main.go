@@ -272,36 +272,6 @@ type hubWhitelist struct {
 }
 
 func getConfig() string {
-	/*
-			{
-		   "portalservices":false,
-		   "gateway":"192.168.2.1",
-		   "mac":"00:00:88:00:bb:ee",
-		   "swversion":"01005215",
-		   "linkbutton":false,
-		   "ipaddress":"192.168.0.13:80",
-		   "proxyport":0,
-		   "swupdate":{
-		      "text":"",
-		      "notify":false,
-		      "updatestate":0,
-		      "url":""
-		   },
-		   "netmask":"255.255.255.0",
-		   "name":"Philips hue",
-		   "dhcp":true,
-		   "proxyaddress":"",
-		   "whitelist":{
-		      "e7x4kuCaC8h885jo":{
-		         "name":"clientname#devicename",
-		         "last use date":"2015-07-05T16:48:18",
-		         "create date":"2015-07-05T16:48:17"
-		      }
-		   },
-		   "UTC":"2012-10-29T12:05:00"
-		}
-	*/
-
 	mac, _ := getMacAddr()
 	ip, _ := getLocalIP()
 	mac = strings.ReplaceAll(mac, ":", "")
