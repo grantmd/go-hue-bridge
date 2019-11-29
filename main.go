@@ -152,7 +152,7 @@ func getLocalIP() (addr string, err error) {
 func serveIndex() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		fmt.Println("Request:", r.URL)
+		fmt.Println("Request:", r.Method, r.URL)
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -164,7 +164,7 @@ func serveIndex() http.Handler {
 func serveDescriptionXML() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		fmt.Println("Request:", r.URL)
+		fmt.Println("Request:", r.Method, r.URL)
 
 		w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -222,7 +222,7 @@ func serveAPI() http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		fmt.Println("API Request:", r.URL)
+		fmt.Println("API Request:", r.Method, r.URL)
 
 		var output = "{}"
 
