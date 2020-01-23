@@ -1,2 +1,3 @@
 *.exe
 go-hue-bridge
+*.pem
