@@ -3,7 +3,7 @@ module github.com/grantmd/go-hue-bridge
 go 1.25.0
 
 require (
-	github.com/hashicorp/mdns v1.0.6
+	github.com/hashicorp/mdns v1.0.7
 	github.com/koron/go-ssdp v0.9.0
 )
 
